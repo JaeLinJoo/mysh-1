@@ -53,6 +53,14 @@ int evaluate_command(int n_commands, struct single_command (*commands)[512])
       return 1;
     } 
     else{
+	
+	char pr[5][128]={
+	    "/usr/local/bin/",
+	    "/bin/",
+	    "/usr/bin/",
+	    "/usr/sbin/",
+	    "/sbin/"};
+
 	//process creation
 	pid_t  pid_r;
 	int pid = fork();
@@ -65,7 +73,19 @@ int evaluate_command(int n_commands, struct single_command (*commands)[512])
 	}
 	else if(pid==0){
 	    pid_r=getpid();
-	    execv(com->argv[0],com->argv);
+	    int ex =  execv(com->argv[0],com->argv);
+	    if(ex==-1){
+		char *p=com->argv[0];
+		for(int i=0;i<5;i++){
+		    strcat(pr[i],com->argv[0]);
+		    com->argv[0]=pr[i];
+		    int ex_1=execv(com->argv[0],com->argv);
+		    if(ex_1==-1){
+			com->argv[0]=p;
+		    }
+		}
+
+	    }
 	    fprintf(stderr,"%s: command not found\n",com->argv[0]);
 	    return-1;
 	}
